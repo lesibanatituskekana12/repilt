@@ -111,7 +111,7 @@ export default function Contact() {
                         <FormItem>
                           <FormLabel>Phone Number (Optional)</FormLabel>
                           <FormControl>
-                            <Input type="tel" {...field} data-testid="input-contact-phone" />
+                            <Input type="tel" {...field} value={field.value || ""} data-testid="input-contact-phone" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

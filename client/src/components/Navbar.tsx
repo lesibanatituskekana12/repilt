@@ -32,7 +32,7 @@ export function Navbar({ cartItemCount = 0 }: NavbarProps) {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" data-testid="link-home">
-            <a className="flex items-center gap-3 hover-elevate active-elevate-2 rounded-lg px-2 py-1 -ml-2">
+            <div className="flex items-center gap-3 hover-elevate active-elevate-2 rounded-lg px-2 py-1 -ml-2 cursor-pointer">
               <img 
                 src={logoImage} 
                 alt="Pam_Lee's Kitchen Logo" 
@@ -42,22 +42,22 @@ export function Navbar({ cartItemCount = 0 }: NavbarProps) {
                 <h1 className="text-xl md:text-2xl font-bold text-primary">Pam_Lee's Kitchen</h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">Artisan Bakery</p>
               </div>
-            </a>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link key={link.path} href={link.path} data-testid={`link-${link.label.toLowerCase()}`}>
-                <a
-                  className={`text-sm font-medium transition-colors hover-elevate active-elevate-2 px-3 py-2 rounded-lg ${
+                <span
+                  className={`text-sm font-medium transition-colors hover-elevate active-elevate-2 px-3 py-2 rounded-lg cursor-pointer ${
                     location === link.path
                       ? "text-primary"
                       : "text-foreground"
                   }`}
                 >
                   {link.label}
-                </a>
+                </span>
               </Link>
             ))}
           </div>
@@ -67,21 +67,19 @@ export function Navbar({ cartItemCount = 0 }: NavbarProps) {
             {/* Cart Button */}
             {isAuthenticated && (
               <Link href="/order" data-testid="link-cart">
-                <a>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="relative"
-                    data-testid="button-cart"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    {cartItemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                        {cartItemCount}
-                      </span>
-                    )}
-                  </Button>
-                </a>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  data-testid="button-cart"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </Button>
               </Link>
             )}
 
@@ -128,8 +126,8 @@ export function Navbar({ cartItemCount = 0 }: NavbarProps) {
           <div className="md:hidden border-t py-4 space-y-2">
             {navLinks.map((link) => (
               <Link key={link.path} href={link.path}>
-                <a
-                  className={`block px-4 py-2 text-base font-medium rounded-lg hover-elevate active-elevate-2 ${
+                <div
+                  className={`block px-4 py-2 text-base font-medium rounded-lg hover-elevate active-elevate-2 cursor-pointer ${
                     location === link.path
                       ? "bg-primary text-primary-foreground"
                       : "text-foreground"
@@ -138,7 +136,7 @@ export function Navbar({ cartItemCount = 0 }: NavbarProps) {
                   data-testid={`mobile-link-${link.label.toLowerCase()}`}
                 >
                   {link.label}
-                </a>
+                </div>
               </Link>
             ))}
 
