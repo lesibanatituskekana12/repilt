@@ -23,8 +23,22 @@ const orderSchema = z.object({
   customerPhone: z.string().min(10, "Phone number must be at least 10 digits"),
   deliveryType: z.enum(["delivery", "pickup"]),
   deliveryAddress: z.string().optional(),
+  paymentMethod: z.enum(["cash", "card", "eft"], {
+    required_error: "Please select a payment method",
+  }),
   notes: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    if (data.deliveryType === "delivery") {
+      return data.deliveryAddress && data.deliveryAddress.trim().length > 0;
+    }
+    return true;
+  },
+  {
+    message: "Delivery address is required for delivery orders",
+    path: ["deliveryAddress"],
+  }
+);
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
@@ -46,6 +60,7 @@ export default function Order() {
       customerPhone: "",
       deliveryType: "delivery",
       deliveryAddress: "",
+      paymentMethod: "cash",
       notes: "",
     },
   });
@@ -79,6 +94,7 @@ export default function Order() {
       return await apiRequest("POST", "/api/orders", {
         ...data,
         userId: user?.id,
+        deliveryFee: deliveryFee.toFixed(2),
         totalAmount: total.toFixed(2),
         items: orderItems,
       });
@@ -203,13 +219,58 @@ export default function Order() {
                         <FormItem>
                           <FormLabel>Delivery Address *</FormLabel>
                           <FormControl>
-                            <Textarea {...field} rows={3} data-testid="textarea-address" />
+                            <Textarea 
+                              {...field} 
+                              rows={3} 
+                              data-testid="textarea-address"
+                              placeholder="Enter your full residential address including street, city, and postal code"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   )}
+
+                  <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Method *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col gap-3"
+                          >
+                            <div className="flex items-center space-x-2 border rounded-lg p-3">
+                              <RadioGroupItem value="cash" id="cash" data-testid="radio-cash" />
+                              <Label htmlFor="cash" className="flex-1 cursor-pointer">
+                                <span className="font-semibold">Cash on Delivery/Pickup</span>
+                                <p className="text-sm text-muted-foreground">Pay with cash when you receive your order</p>
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2 border rounded-lg p-3">
+                              <RadioGroupItem value="card" id="card" data-testid="radio-card" />
+                              <Label htmlFor="card" className="flex-1 cursor-pointer">
+                                <span className="font-semibold">Card Payment</span>
+                                <p className="text-sm text-muted-foreground">Pay with credit/debit card on delivery/pickup</p>
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2 border rounded-lg p-3">
+                              <RadioGroupItem value="eft" id="eft" data-testid="radio-eft" />
+                              <Label htmlFor="eft" className="flex-1 cursor-pointer">
+                                <span className="font-semibold">Bank Transfer (EFT)</span>
+                                <p className="text-sm text-muted-foreground">We'll send you banking details after order confirmation</p>
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}

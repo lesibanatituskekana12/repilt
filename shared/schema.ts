@@ -82,9 +82,12 @@ export const orders = pgTable("orders", {
   customerPhone: varchar("customer_phone", { length: 50 }).notNull(),
   deliveryAddress: text("delivery_address"),
   deliveryType: varchar("delivery_type", { length: 20 }).notNull(), // "delivery" or "pickup"
+  deliveryFee: decimal("delivery_fee", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  paymentMethod: varchar("payment_method", { length: 50 }).notNull(), // "cash", "card", "eft"
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   status: varchar("status", { length: 20 }).notNull().default("pending"),
   notes: text("notes"),
+  canCancel: boolean("can_cancel").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

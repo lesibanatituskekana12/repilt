@@ -101,6 +101,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/orders/:id/cancel", async (req, res) => {
+    try {
+      const order = await storage.getOrder(req.params.id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      // Check if order can be cancelled (within 24 hours and status is pending)
+      const orderAge = Date.now() - new Date(order.createdAt).getTime();
+      const hoursOld = orderAge / (1000 * 60 * 60);
+
+      if (hoursOld > 24) {
+        return res.status(400).json({ message: "Orders can only be cancelled within 24 hours of placement" });
+      }
+
+      if (order.status !== "pending") {
+        return res.status(400).json({ message: "Only pending orders can be cancelled" });
+      }
+
+      const cancelledOrder = await storage.updateOrderStatus(req.params.id, "cancelled");
+      res.json(cancelledOrder);
+    } catch (error: any) {
+      console.error("Error cancelling order:", error);
+      res.status(400).json({ message: error.message || "Failed to cancel order" });
+    }
+  });
+
   // Admin order routes
   app.get("/api/admin/orders", isAuthenticated, async (req: any, res) => {
     try {

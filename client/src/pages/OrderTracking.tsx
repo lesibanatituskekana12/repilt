@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Package, CheckCircle, Clock, XCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Order, OrderItem } from "@shared/schema";
 
 const statusConfig = {
@@ -19,16 +21,45 @@ const statusConfig = {
 export default function OrderTracking() {
   const [orderNumber, setOrderNumber] = useState("");
   const [searchedOrderNumber, setSearchedOrderNumber] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: order, isLoading, error } = useQuery<Order & { items: OrderItem[] }>({
     queryKey: ["/api/orders/track", searchedOrderNumber],
     enabled: searchedOrderNumber.length > 0,
   });
 
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      return await apiRequest("POST", `/api/orders/${orderId}/cancel`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders/track", searchedOrderNumber] });
+      toast({
+        title: "Order Cancelled",
+        description: "Your order has been cancelled successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Cancellation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSearch = () => {
     setSearchedOrderNumber(orderNumber.trim());
   };
 
+  const handleCancelOrder = () => {
+    if (order && window.confirm("Are you sure you want to cancel this order?")) {
+      cancelOrderMutation.mutate(order.id);
+    }
+  };
+
+  const canCancelOrder = order && order.canCancel && order.status === "pending";
   const statusInfo = order ? statusConfig[order.status as keyof typeof statusConfig] : null;
   const StatusIcon = statusInfo?.icon;
 
@@ -84,10 +115,23 @@ export default function OrderTracking() {
                   {new Date(order.createdAt).toLocaleTimeString()}
                 </p>
               </div>
-              <Badge className={`${statusInfo.color} text-white`} data-testid="badge-order-status">
-                {StatusIcon && <StatusIcon className="h-4 w-4 mr-2" />}
-                {statusInfo.label}
-              </Badge>
+              <div className="flex gap-2 items-center">
+                <Badge className={`${statusInfo.color} text-white`} data-testid="badge-order-status">
+                  {StatusIcon && <StatusIcon className="h-4 w-4 mr-2" />}
+                  {statusInfo.label}
+                </Badge>
+                {canCancelOrder && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleCancelOrder}
+                    disabled={cancelOrderMutation.isPending}
+                    data-testid="button-cancel-order"
+                  >
+                    {cancelOrderMutation.isPending ? "Cancelling..." : "Cancel Order"}
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Order Timeline */}
@@ -140,6 +184,13 @@ export default function OrderTracking() {
                   <p className="text-muted-foreground">Delivery Method</p>
                   <p className="font-medium capitalize">{order.deliveryType}</p>
                 </div>
+                <div>
+                  <p className="text-muted-foreground">Payment Method</p>
+                  <p className="font-medium capitalize">
+                    {order.paymentMethod === "eft" ? "Bank Transfer (EFT)" : 
+                     order.paymentMethod === "card" ? "Card Payment" : "Cash"}
+                  </p>
+                </div>
                 {order.deliveryAddress && (
                   <div className="md:col-span-2">
                     <p className="text-muted-foreground">Delivery Address</p>
@@ -166,11 +217,19 @@ export default function OrderTracking() {
                 ))}
               </div>
 
-              <div className="border-t mt-4 pt-4 flex justify-between items-center">
-                <span className="text-lg font-semibold">Total Amount</span>
-                <span className="text-2xl font-bold text-primary" data-testid="text-order-total">
-                  R{parseFloat(order.totalAmount).toFixed(2)}
-                </span>
+              <div className="border-t mt-4 pt-4 space-y-2">
+                {order.deliveryFee && parseFloat(order.deliveryFee) > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>Delivery Fee</span>
+                    <span>R{parseFloat(order.deliveryFee).toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center border-t pt-2">
+                  <span className="text-lg font-semibold">Total Amount</span>
+                  <span className="text-2xl font-bold text-primary" data-testid="text-order-total">
+                    R{parseFloat(order.totalAmount).toFixed(2)}
+                  </span>
+                </div>
               </div>
             </div>
 

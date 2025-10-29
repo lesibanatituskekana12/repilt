@@ -42,6 +42,7 @@ export interface IStorage {
   getOrderByNumber(orderNumber: string): Promise<(Order & { items: OrderItem[] }) | undefined>;
   getAllOrders(): Promise<Order[]>;
   updateOrderStatus(id: string, status: string): Promise<Order>;
+  getOrder(orderId: string): Promise<Order | undefined>; // Added for cancellation check
 
   // Special operations
   getAllSpecials(): Promise<Special[]>;
@@ -107,10 +108,10 @@ export class DatabaseStorage implements IStorage {
   async createOrder(orderData: InsertOrder, items: InsertOrderItem[]): Promise<Order & { items: OrderItem[] }> {
     // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-    
+
     const [order] = await db
       .insert(orders)
-      .values({ ...orderData, orderNumber })
+      .values({ ...orderData, orderNumber, canCancel: true }) // Add canCancel flag
       .returning();
 
     const orderItemsData = items.map(item => ({
@@ -125,7 +126,7 @@ export class DatabaseStorage implements IStorage {
 
   async getOrderByNumber(orderNumber: string): Promise<(Order & { items: OrderItem[] }) | undefined> {
     const [order] = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber));
-    
+
     if (!order) return undefined;
 
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
@@ -143,6 +144,11 @@ export class DatabaseStorage implements IStorage {
       .set({ status, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning();
+    return order;
+  }
+
+  async getOrder(orderId: string): Promise<Order | undefined> {
+    const [order] = await db.select().from(orders).where(eq(orders.id, orderId));
     return order;
   }
 
