@@ -23,27 +23,27 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link href="/menu" data-testid="footer-link-menu">
-                  <a className="text-sm text-gray-300 hover:text-primary transition-colors">Menu</a>
+                  <span className="text-sm text-gray-300 hover:text-primary transition-colors cursor-pointer">Menu</span>
                 </Link>
               </li>
               <li>
                 <Link href="/specials" data-testid="footer-link-specials">
-                  <a className="text-sm text-gray-300 hover:text-primary transition-colors">Specials</a>
+                  <span className="text-sm text-gray-300 hover:text-primary transition-colors cursor-pointer">Specials</span>
                 </Link>
               </li>
               <li>
                 <Link href="/order-tracking" data-testid="footer-link-tracking">
-                  <a className="text-sm text-gray-300 hover:text-primary transition-colors">Track Order</a>
+                  <span className="text-sm text-gray-300 hover:text-primary transition-colors cursor-pointer">Track Order</span>
                 </Link>
               </li>
               <li>
                 <Link href="/gallery" data-testid="footer-link-gallery">
-                  <a className="text-sm text-gray-300 hover:text-primary transition-colors">Gallery</a>
+                  <span className="text-sm text-gray-300 hover:text-primary transition-colors cursor-pointer">Gallery</span>
                 </Link>
               </li>
               <li>
                 <Link href="/contact" data-testid="footer-link-contact">
-                  <a className="text-sm text-gray-300 hover:text-primary transition-colors">Contact Us</a>
+                  <span className="text-sm text-gray-300 hover:text-primary transition-colors cursor-pointer">Contact Us</span>
                 </Link>
               </li>
             </ul>
