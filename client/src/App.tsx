@@ -25,29 +25,24 @@ function Router() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {isAuthenticated && <Navbar cartItemCount={cartItemCount} />}
+      <Navbar cartItemCount={cartItemCount} />
       
       <main className="flex-1">
         <Switch>
-          {isLoading || !isAuthenticated ? (
-            <Route path="/" component={Landing} />
-          ) : (
-            <>
-              <Route path="/" component={Home} />
-              <Route path="/menu" component={Menu} />
-              <Route path="/order" component={Order} />
-              <Route path="/order-tracking" component={OrderTracking} />
-              <Route path="/specials" component={Specials} />
-              <Route path="/gallery" component={Gallery} />
-              <Route path="/contact" component={Contact} />
-              <Route path="/admin" component={Admin} />
-            </>
-          )}
+          <Route path="/" component={Landing} />
+          <Route path="/home" component={Home} />
+          <Route path="/menu" component={Menu} />
+          <Route path="/order" component={Order} />
+          <Route path="/order-tracking" component={OrderTracking} />
+          <Route path="/specials" component={Specials} />
+          <Route path="/gallery" component={Gallery} />
+          <Route path="/contact" component={Contact} />
+          {isAuthenticated && <Route path="/admin" component={Admin} />}
           <Route component={NotFound} />
         </Switch>
       </main>
 
-      {isAuthenticated && <Footer />}
+      <Footer />
     </div>
   );
 }
